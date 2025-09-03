@@ -16,12 +16,17 @@
 
 "use strict";
 
+const express = require("express");
 const { Storage } = require("@google-cloud/storage");
 const env = require("./env");
 
+const app = express();
 const storage = new Storage();
 
-const getHandler = async (res) => {
+// Parse raw body for image uploads
+app.use(express.raw({ type: 'image/*', limit: '10mb' }));
+
+const getHandler = async (req, res) => {
   res.sendStatus(200);
 };
 
@@ -37,7 +42,7 @@ const postHandler = async (req, res) => {
   }
 
   const filename = contentDisposition.match(
-    /^attachment;\s*filename=\"(?<filename>.*)\"$/
+    /^attachment;\s*filename="(?<filename>.*)"$/
   )?.groups?.filename;
 
   if (!filename) {
@@ -45,23 +50,22 @@ const postHandler = async (req, res) => {
   }
 
   try {
-    const body = Buffer.from(req.body, "binary");
+    const body = req.body; // Already a Buffer from express.raw middleware
     await storage.bucket(env.bucketName).file(filename).save(body);
     return res.sendStatus(200);
   } catch (err) {
+    console.error("Error saving file to storage:", err);
     return res.sendStatus(500);
   }
 };
 
-exports.handler = async (req, res) => {
-  switch (req.method) {
-    case "GET":
-      await getHandler(res);
-      break;
-    case "POST":
-      await postHandler(req, res);
-      break;
-    default:
-      res.sendStatus(405);
-  }
-};
+// Handle both GET and POST requests
+app.get("/", getHandler);
+app.post("/", postHandler);
+
+// Start the server
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+  console.log(`Using bucket: ${env.bucketName}`);
+});
