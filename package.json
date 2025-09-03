@@ -4,7 +4,8 @@
   "description": "Upload endpoint for cameras",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo &quot;Error: no test specified&quot; && exit 1",
+    "start": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/cadavis22/OpsVision-Upload/issues"
   },
-  "homepage": "https://github.com/cadavis22/OpsVision-Upload#readme"
+  "homepage": "https://github.com/cadavis22/OpsVision-Upload#readme",
+  "dependencies": {
+    "@google-cloud/storage": "^6.10.0"
+  }
 }
