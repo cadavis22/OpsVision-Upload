@@ -1,0 +1,19 @@
+{
+  "name": "opsvision-upload",
+  "version": "1.0.0",
+  "description": "Upload endpoint for cameras",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cadavis22/OpsVision-Upload.git"
+  },
+  "author": "Chris A. Davis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cadavis22/OpsVision-Upload/issues"
+  },
+  "homepage": "https://github.com/cadavis22/OpsVision-Upload#readme"
+}
