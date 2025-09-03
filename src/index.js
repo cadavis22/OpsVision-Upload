@@ -33,6 +33,7 @@ const getHandler = async (req, res) => {
 const postHandler = async (req, res) => {
   const contentType = req.headers["content-type"];
   if (!contentType || !contentType.startsWith("image/")) {
+    console.log('Image Uplad detected');
     return res.sendStatus(415);
   }
 
