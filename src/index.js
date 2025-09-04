@@ -38,7 +38,7 @@ async function validateApiKey(apiKey) {
     if (response.status === 200 && response.data && response.data.valid) {
       console.log(`API key validation successful: ${JSON.stringify(response.data)}`);
       return {
-        valid: true,
+        valid: response.data.valid,
         applicationId: response.data.applicationId,
         path: response.data.path || ''
       };
