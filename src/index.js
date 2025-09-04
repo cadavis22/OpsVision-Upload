@@ -32,7 +32,7 @@ async function validateApiKey(apiKey) {
   try {
     console.log(`Validating API key: ${apiKey}`);
     const validationUrl = `https://us-central1-opsvision-1527e.cloudfunctions.net/secureUploadApi/secureUpload?key=${apiKey}`;
-    
+    console.log(`Validation URL: ${validationUrl}`);
     const response = await axios.get(validationUrl);
     
     if (response.status === 200 && response.data && response.data.valid) {
