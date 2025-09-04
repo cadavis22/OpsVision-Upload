@@ -1,22 +1,105 @@
-*Copyright (C) 2021, Axis Communications AB, Lund, Sweden. All Rights Reserved.*
+# OpsVision Upload Service
 
-# Integration between Axis devices and Google Cloud Platform (GCP)
+A Google Cloud Run service that handles secure image uploads from cameras and other devices.
 
-## Introduction
+## Features
 
-[Axis Developer Documentation](https://developer.axis.com/) serves as a comprehensive resource hub for developers and solution builders aiming to build applications tailored for Axis network-connected devices.
+- Secure API key validation
+- Path-based storage organization
+- Support for image uploads
+- Automatic metadata tracking
 
-[Google Cloud Platform (GCP)](https://cloud.google.com) provides highly reliable, scalable, low-cost infrastructure to individuals, companies, and governments.
+## API Endpoints
 
-This repository focuses on providing examples where we create the integration between the Axis device and GCP.
+### GET /
 
-## Code examples
+Health check endpoint that returns a 200 OK status.
 
-If you find yourself wishing there was another example more relevant to your use case, please don't hesitate to [start a discussion](https://github.com/AxisCommunications/acap-integration-examples-gcp/discussions/new) or [open a new issue](https://github.com/AxisCommunications/acap-integration-examples-gcp/issues/new/choose).
+### POST /
 
-- [images-to-google-cloud-storage](./images-to-google-cloud-storage/)
-    - This code example covers sending images from a camera to Google Cloud Storage
+Upload endpoint for images. Requires API key validation.
+
+#### Request Parameters
+
+- `key` (query parameter): The API key for authentication
+
+#### Headers
+
+- `Content-Type`: Must start with `image/`
+- `Content-Disposition`: Must be in format `attachment; filename="your-filename.jpg"`
+
+#### Example Request
+
+```bash
+curl -X POST "https://opsvision-upload-35142894488.us-central1.run.app/secureUpload?key=33ca4c06-0ab5-442c-bd8c-31e0d653b114" \
+  -H "Content-Type: image/jpeg" \
+  -H "Content-Disposition: attachment; filename=&quot;test.jpg&quot;" \
+  --data-binary "@test.jpg"
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "file": {
+    "name": "test.jpg",
+    "size": 12345,
+    "type": "image/jpeg",
+    "path": "applications/app-id/path/test.jpg",
+    "downloadUrl": "https://storage.googleapis.com/..."
+  },
+  "message": "File uploaded successfully"
+}
+```
+
+## API Key Validation
+
+The service validates API keys against the external validation service:
+`http://us-central1-opsvision-1527e.cloudfunctions.net/secureUploadApi/secureUpload`
+
+Valid API keys provide:
+- Application ID
+- Optional storage path
+
+## Storage Structure
+
+Files are stored in Google Cloud Storage with the following path structure:
+`applications/{applicationId}/{path}/{filename}`
+
+If no path is specified in the API key, files are stored at:
+`applications/{applicationId}/{filename}`
+
+## Environment Variables
+
+- `BUCKET_NAME`: The Google Cloud Storage bucket name (required)
+- `PORT`: The port to listen on (defaults to 8080)
+
+## Development
+
+### Prerequisites
+
+- Node.js 14+
+- Google Cloud SDK
+
+### Installation
+
+```bash
+npm install
+```
+
+### Running Locally
+
+```bash
+npm start
+```
+
+### Deployment
+
+```bash
+gcloud run deploy
+```
 
 ## License
 
-[Apache 2.0](./LICENSE)
+ISC
