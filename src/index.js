@@ -31,7 +31,7 @@ app.use(express.raw({ type: 'image/*', limit: '10mb' }));
 async function validateApiKey(apiKey) {
   try {
     console.log(`Validating API key: ${apiKey}`);
-    const validationUrl = `http://us-central1-opsvision-1527e.cloudfunctions.net/secureUploadApi/secureUpload?key=${apiKey}`;
+    const validationUrl = `https://us-central1-opsvision-1527e.cloudfunctions.net/secureUploadApi/secureUpload?key=${apiKey}`;
     
     const response = await axios.get(validationUrl);
     
