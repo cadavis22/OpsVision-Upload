@@ -19,38 +19,13 @@
 const express = require("express");
 const { Storage } = require("@google-cloud/storage");
 const env = require("./env");
-const axios = require("axios");
+const { validateApiKey } = require("./firestore");
 
 const app = express();
 const storage = new Storage();
 
 // Parse raw body for image uploads
 app.use(express.raw({ type: 'image/*', limit: '10mb' }));
-
-// API key validation function
-async function validateApiKey(apiKey) {
-  try {
-    console.log(`Validating API key: ${apiKey}`);
-    const validationUrl = `https://secureuploadapi-xdcdkbf4vq-uc.a.run.app/secureUploadApi/secureUpload?key=${apiKey}`;
-    console.log(`Validation URL: ${validationUrl}`);
-    const response = await axios.get(validationUrl);
-    
-    if (response.status === 200 && response.data && response.data.valid) {
-      console.log(`API key validation successful: ${JSON.stringify(response.data)}`);
-      return {
-        valid: response.data.valid,
-        applicationId: response.data.applicationId,
-        path: response.data.path || ''
-      };
-    }
-    
-    console.log(`API key validation failed: ${JSON.stringify(response.data)}`);
-    return { valid: false };
-  } catch (error) {
-    console.error("Error validating API key:", error.message);
-    return { valid: false };
-  }
-}
 
 const getHandler = async (req, res) => {
   res.sendStatus(200);
@@ -91,7 +66,7 @@ const postHandler = async (req, res) => {
   }
 
   try {
-    // Validate API key
+    // Validate API key directly with Firestore instead of API call
     const validation = await validateApiKey(apiKey);
     
     if (!validation.valid) {
@@ -128,6 +103,24 @@ const postHandler = async (req, res) => {
       action: 'read',
       expires: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
     });
+    
+    // Log upload to Firestore (optional enhancement)
+    try {
+      const { db } = require('./firestore');
+      await db.collection('uploads').add({
+        applicationId: validation.applicationId,
+        filename: filename,
+        path: storagePath,
+        size: body.length,
+        contentType: contentType,
+        uploadedAt: new Date(),
+        apiKey: apiKey
+      });
+      console.log("Upload logged to Firestore");
+    } catch (logError) {
+      console.error("Error logging upload to Firestore:", logError);
+      // Continue even if logging fails
+    }
     
     return res.status(200).json({
       success: true,

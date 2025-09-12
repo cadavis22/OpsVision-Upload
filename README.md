@@ -4,10 +4,11 @@ A Google Cloud Run service that handles secure image uploads from cameras and ot
 
 ## Features
 
-- Secure API key validation
+- Secure API key validation using direct Firestore integration
 - Path-based storage organization
 - Support for image uploads
 - Automatic metadata tracking
+- Upload logging to Firestore
 
 ## API Endpoints
 
@@ -55,12 +56,16 @@ curl -X POST "https://opsvision-upload-35142894488.us-central1.run.app/secureUpl
 
 ## API Key Validation
 
-The service validates API keys against the external validation service:
-`http://us-central1-opsvision-1527e.cloudfunctions.net/secureUploadApi/secureUpload`
+The service validates API keys directly against Firestore instead of using an external API. The API keys are stored in the `apiKeys` collection in Firestore with the following structure:
 
-Valid API keys provide:
-- Application ID
-- Optional storage path
+```
+apiKeys (collection)
+  |- {apiKey} (document ID)
+      |- applicationId: string
+      |- path: string (optional)
+      |- disabled: boolean (optional)
+      |- expiresAt: timestamp (optional)
+```
 
 ## Storage Structure
 
@@ -69,6 +74,22 @@ Files are stored in Google Cloud Storage with the following path structure:
 
 If no path is specified in the API key, files are stored at:
 `applications/{applicationId}/{filename}`
+
+## Upload Logging
+
+All successful uploads are logged to Firestore in the `uploads` collection with the following structure:
+
+```
+uploads (collection)
+  |- {auto-generated ID}
+      |- applicationId: string
+      |- filename: string
+      |- path: string
+      |- size: number
+      |- contentType: string
+      |- uploadedAt: timestamp
+      |- apiKey: string
+```
 
 ## Environment Variables
 
@@ -81,6 +102,7 @@ If no path is specified in the API key, files are stored at:
 
 - Node.js 14+
 - Google Cloud SDK
+- Firebase Admin SDK
 
 ### Installation
 
