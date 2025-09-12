@@ -16,6 +16,7 @@ const db = admin.firestore();
 
 /**
  * Validates an API key by checking it directly in Firestore
+ * Uses the apiKey as the collection name in the database
  * @param {string} apiKey - The API key to validate
  * @returns {Promise<Object>} - Validation result with valid flag, applicationId and path
  */
@@ -23,15 +24,22 @@ async function validateApiKey(apiKey) {
   try {
     console.log(`Validating API key: ${apiKey}`);
     
-    // Query the apiKeys collection in Firestore
-    const apiKeyDoc = await db.collection('apiKeys').doc(apiKey).get();
+    if (!apiKey) {
+      console.log('No API key provided');
+      return { valid: false };
+    }
+
+    // Use the apiKey as the collection name
+    const apiKeyCollection = await db.collection(apiKey).get();
     
-    if (!apiKeyDoc.exists) {
-      console.log('API key not found in Firestore');
+    if (apiKeyCollection.empty) {
+      console.log(`No documents found in collection: ${apiKey}`);
       return { valid: false };
     }
     
-    const apiKeyData = apiKeyDoc.data();
+    // Get the first document in the collection
+    // This assumes there's at least one document in the collection
+    const apiKeyData = apiKeyCollection.docs[0].data();
     
     // Check if the API key is valid (not expired, not disabled, etc.)
     if (apiKeyData.disabled) {
